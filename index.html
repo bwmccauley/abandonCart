@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Abandon Cart</title>
+<title>Glitch Store with AI Guide</title>
 <style>
   body {
     background-color: black;
@@ -11,25 +11,45 @@
     font-family: monospace;
     text-align: center;
     overflow-x: hidden;
+    padding: 20px;
+  }
+  .balance {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    user-select: none;
+  }
+  .store, .cart {
+    display: inline-block;
+    vertical-align: top;
+    margin: 0 20px;
+  }
+  .store {
+    max-width: 460px;
   }
   .item {
-    display: inline-block;
-    margin: 20px;
+    display: flex;
     border: 2px solid white;
+    margin: 10px 0;
     padding: 10px;
-    width: 200px;
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255,255,255,0.02);
     box-shadow: 0 0 10px red;
     animation: flicker 2s infinite;
+    align-items: center;
+    justify-content: space-between;
   }
   .item img {
-    width: 100%;
+    width: 80px;
     filter: url(#glitch);
     transition: filter 0.3s, transform 0.2s;
+    margin-right: 15px;
   }
   .item img:hover {
     filter: contrast(200%) hue-rotate(90deg) saturate(2);
-    transform: scale(1.05) rotate(-2deg);
+    transform: scale(1.1) rotate(-2deg);
+  }
+  .item-info {
+    flex-grow: 1;
+    text-align: left;
   }
   button {
     background: transparent;
@@ -38,10 +58,42 @@
     padding: 5px 10px;
     cursor: pointer;
     transition: background 0.3s, color 0.3s;
+    white-space: nowrap;
   }
-  button:hover {
+  button:hover:not(:disabled) {
     background: white;
     color: black;
+  }
+  button:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  h2 {
+    margin-top: 0;
+  }
+  .cart {
+    width: 300px;
+    border: 2px solid white;
+    padding: 10px;
+    background: rgba(255,255,255,0.02);
+    box-shadow: 0 0 10px red;
+    animation: flicker 2s infinite;
+  }
+  .cart-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .total {
+    font-weight: bold;
+    margin-top: 10px;
+    font-size: 1.2rem;
+  }
+  .checkout-btn {
+    margin-top: 15px;
+    width: 100%;
+    padding: 8px 0;
+    font-weight: bold;
   }
   @keyframes flicker {
     0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
@@ -51,12 +103,93 @@
       box-shadow: 0 0 2px red;
     }
   }
+  #message {
+    margin-top: 20px;
+    font-weight: bold;
+    min-height: 24px;
+  }
+
+  /* Chatbot styles */
+  #chatbot {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 320px;
+    max-height: 400px;
+    background: rgba(0,0,0,0.9);
+    border: 2px solid #39ff14;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+    z-index: 1000;
+    user-select: none;
+  }
+  #chat-header {
+    background: #010;
+    padding: 8px 12px;
+    color: #39ff14;
+    font-weight: bold;
+    border-bottom: 1px solid #39ff14;
+  }
+  #chat-messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    color: #39ff14;
+    text-align: left;
+  }
+  .chat-message {
+    margin-bottom: 10px;
+  }
+  .chat-message.bot {
+    color: #ff0044;
+  }
+  #chat-input-area {
+    display: flex;
+    border-top: 1px solid #39ff14;
+  }
+  #chat-input {
+    flex: 1;
+    padding: 8px 10px;
+    background: black;
+    border: none;
+    color: #39ff14;
+    font-family: monospace;
+  }
+  #chat-input:focus {
+    outline: none;
+  }
+  #chat-send-btn {
+    background: #39ff14;
+    border: none;
+    color: black;
+    padding: 0 15px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  #chat-send-btn:hover {
+    background: #6fff6f;
+  }
 </style>
 </head>
 <body>
-<h1>Welcome to the Glitch Store</h1>
-<div id="store"></div>
 
+<h1>Welcome to the Glitch Store</h1>
+
+<div class="balance">Balance: <span id="balance">💀 100</span></div>
+
+<div class="store" id="store"></div>
+
+<div class="cart">
+  <h2>Cart</h2>
+  <div id="cart-items">No items added.</div>
+  <div class="total" id="cart-total">Total: 💀 0</div>
+  <button class="checkout-btn" id="checkout-btn" disabled>Checkout</button>
+  <div id="message"></div>
+</div>
+
+<!-- Glitch SVG filter -->
 <svg width="0" height="0">
   <filter id="glitch">
     <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" result="turb" />
@@ -64,35 +197,132 @@
   </filter>
 </svg>
 
+<!-- Chatbot UI -->
+<div id="chatbot">
+  <div id="chat-header">AI Guide</div>
+  <div id="chat-messages"></div>
+  <div id="chat-input-area">
+    <input id="chat-input" type="text" placeholder="Ask for a hint or say hello..." />
+    <button id="chat-send-btn">Send</button>
+  </div>
+</div>
+
 <script>
 const storeElement = document.getElementById('store');
+const balanceElement = document.getElementById('balance');
+const cartItemsElement = document.getElementById('cart-items');
+const cartTotalElement = document.getElementById('cart-total');
+const checkoutBtn = document.getElementById('checkout-btn');
+const messageElement = document.getElementById('message');
+
+const skull = '💀';
+
+let balance = 100;
+
 const items = [
-  {name: 'Rusty Key', img: 'https://source.unsplash.com/200x200/?michigan,abandoned'},
-  {name: 'Foggy Lighthouse', img: 'https://source.unsplash.com/200x200/?lighthouse,fog,michigan'},
-  {name: 'Great Lakes Storm', img: 'https://source.unsplash.com/200x200/?great-lakes,storm,michigan'},
-  {name: 'Misty Forest', img: 'https://source.unsplash.com/200x200/?forest,misty,michigan'},
-  {name: 'Urban Decay', img: 'https://source.unsplash.com/200x200/?rust-belt,decay,michigan'}
+  {name: 'Rusty Key', price: 25, img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=80&h=80&q=80'},
+  {name: 'Foggy Lighthouse', price: 40, img: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?auto=format&fit=crop&w=80&h=80&q=80'},
+  {name: 'Great Lakes Storm', price: 30, img: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=80&h=80&q=80'},
+  {name: 'Misty Forest', price: 20, img: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=80&h=80&q=80'},
+  {name: 'Urban Decay', price: 35, img: 'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?auto=format&fit=crop&w=80&h=80&q=80'}
 ];
 
 let secretSequence = shuffle([...Array(items.length).keys()]);
-let progress = 0;
+// console.log("Secret sequence:", secretSequence);
+
+let cart = [];
 
 function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+  for(let i = array.length -1; i>0; i--){
+    const j = Math.floor(Math.random() * (i+1));
     [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
 }
 
-function renderStore() {
+function renderStore(){
   storeElement.innerHTML = '';
   items.forEach((item, index) => {
     const div = document.createElement('div');
     div.className = 'item';
-    div.innerHTML = `<img src="${item.img}" alt="${item.name}"><h3>${item.name}</h3><button onclick="buyItem(${index})">Buy</button>`;
+
+    const canAfford = (balance >= item.price);
+    div.innerHTML = `
+      <img src="${item.img}" alt="${item.name}">
+      <div class="item-info">
+        <h3>${item.name}</h3>
+        <div>Price: ${skull} ${item.price}</div>
+      </div>
+      <button ${canAfford ? '' : 'disabled'} onclick="addToCart(${index})">Add to Cart</button>
+    `;
     storeElement.appendChild(div);
   });
+  updateBalanceDisplay();
+}
+
+function updateBalanceDisplay(){
+  balanceElement.textContent = `${skull} ${balance}`;
+}
+
+function renderCart(){
+  if(cart.length === 0){
+    cartItemsElement.textContent = 'No items added.';
+    checkoutBtn.disabled = true;
+    cartTotalElement.textContent = `Total: ${skull} 0`;
+    return;
+  }
+  cartItemsElement.innerHTML = '';
+  let total = 0;
+  cart.forEach(i => {
+    const item = items[i];
+    total += item.price;
+    const div = document.createElement('div');
+    div.className = 'cart-item';
+    div.textContent = `${item.name} - ${skull} ${item.price}`;
+    cartItemsElement.appendChild(div);
+  });
+  cartTotalElement.textContent = `Total: ${skull} ${total}`;
+  checkoutBtn.disabled = false;
+}
+
+function addToCart(index){
+  const item = items[index];
+  if(balance < item.price){
+    messageElement.textContent = "Not enough skulls to add this item.";
+    return;
+  }
+  cart.push(index);
+  balance -= item.price;
+  messageElement.textContent = '';
+  renderStore();
+  renderCart();
+}
+
+function resetGame(msg){
+  messageElement.textContent = msg || 'Sequence failed. Cart reset.';
+  cart.forEach(i => {
+    balance += items[i].price;
+  });
+  cart = [];
+  renderStore();
+  renderCart();
+}
+
+function checkout(){
+  if(cart.length !== secretSequence.length){
+    resetGame(`You must buy all ${secretSequence.length} items in correct order!`);
+    return;
+  }
+  for(let i=0; i<secretSequence.length; i++){
+    if(cart[i] !== secretSequence[i]){
+      resetGame('Wrong purchase order! Cart reset.');
+      return;
+    }
+  }
+  messageElement.textContent = 'You unlocked the backroom...';
+  localStorage.setItem('backroomUnlocked', 'true');
+  showBackroomLink();
+  checkoutBtn.disabled = true;
 }
 
 function showBackroomLink() {
@@ -104,33 +334,103 @@ function showBackroomLink() {
     link.textContent = 'Enter the Backroom';
     link.style.display = 'block';
     link.style.marginTop = '20px';
-    link.style.color = '#39ff14'; // neon green color
+    link.style.color = '#39ff14';
     link.style.fontWeight = 'bold';
     document.body.appendChild(link);
   }
   link.style.display = 'block';
 }
 
-function buyItem(index) {
-  if (index === secretSequence[progress]) {
-    progress++;
-    if (progress === secretSequence.length) {
-      alert('You unlocked the backroom...');
-      localStorage.setItem('backroomUnlocked', 'true');
-      showBackroomLink();
-    }
-  } else {
-    progress = 0;
-    alert('Sequence failed. Try again.');
-  }
-}
-
-// On page load, check if backroom already unlocked
-if (localStorage.getItem('backroomUnlocked') === 'true') {
+if(localStorage.getItem('backroomUnlocked') === 'true'){
   showBackroomLink();
 }
 
+checkoutBtn.onclick = checkout;
+
 renderStore();
+renderCart();
+
+/* ----------------- Chatbot logic ----------------- */
+const chatMessages = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chat-input');
+const chatSendBtn = document.getElementById('chat-send-btn');
+
+function appendMessage(text, sender='bot'){
+  const div = document.createElement('div');
+  div.className = 'chat-message ' + sender;
+  div.textContent = text;
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Simple keyword-based replies
+function getBotReply(input){
+  input = input.toLowerCase().trim();
+
+  if(input.includes('hello') || input.includes('hi') || input.includes('hey')){
+    return "Greetings, seeker. Choose carefully. The order is everything.";
+  }
+  if(input.includes('hint')){
+    return "The key lies not in what you buy, but in how you buy it.";
+  }
+  if(input.includes('key')){
+    return "The Rusty Key is more than it seems. It opens doors... if you respect its place.";
+  }
+  if(input.includes('lighthouse')){
+    return "Fog shrouds the lighthouse, but its light guides the patient.";
+  }
+  if(input.includes('storm')){
+    return "The storm rages, but calm minds prevail.";
+  }
+  if(input.includes('forest')){
+    return "Misty forests hide secrets best uncovered step by step.";
+  }
+  if(input.includes('decay')){
+    return "Urban decay reveals forgotten truths to those who look closely.";
+  }
+  if(input.includes('order')){
+    return "The sequence must be precise. One misstep resets the journey.";
+  }
+  if(input.includes('money') || input.includes('skull')){
+    return "Your skulls are finite. Spend wisely or be left wanting.";
+  }
+  if(input.includes('cart')){
+    return "Your cart holds your fate. Fill it with care.";
+  }
+
+  // Default mysterious reply
+  const responses = [
+    "I see shadows in your choices...",
+    "Are you sure that's the right item?",
+    "The void is patient. So must you be.",
+    "Trust the sequence. It watches.",
+    "Not all is as it appears here..."
+  ];
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function userSendMessage(){
+  const text = chatInput.value.trim();
+  if(!text) return;
+  appendMessage(text, 'user');
+  chatInput.value = '';
+
+  setTimeout(() => {
+    const reply = getBotReply(text);
+    appendMessage(reply, 'bot');
+  }, 800);
+}
+
+chatSendBtn.addEventListener('click', userSendMessage);
+chatInput.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') {
+    userSendMessage();
+  }
+});
+
+// Greet on load
+appendMessage("Welcome to the Glitch Store. Need a hint? Just ask.", 'bot');
 </script>
+
 </body>
 </html>
