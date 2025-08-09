@@ -3,89 +3,72 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Backroom - Void & Vendor</title>
+<title>The Backroom</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
   body {
     margin: 0;
     height: 100vh;
-    background: 
-      linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)),
-      url('https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+    background: url('images/office-backroom.jpg') no-repeat center center fixed;
     background-size: cover;
-    color: #39ff14;
-    font-family: monospace;
+    filter: brightness(0.4) contrast(1.2) sepia(0.3);
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    padding: 40px 20px;
-    text-align: center;
-    position: relative;
+    color: #00ff99;
+    font-family: 'Share Tech Mono', monospace;
   }
-  .shadow-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 6rem;
-    font-weight: bold;
-    color: rgba(255, 0, 0, 0.03);
-    text-shadow:
-      0 0 20px rgba(255, 0, 0, 0.02),
-      0 0 40px rgba(255, 0, 0, 0.01);
-    user-select: none;
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 0;
-  }
-  h1 {
+
+  .tech-text {
     font-size: 2.5rem;
-    margin-bottom: 20px;
+    max-width: 80%;
+    text-align: center;
     text-shadow:
-      0 0 5px #39ff14,
-      0 0 10px #39ff14,
-      0 0 20px #0f0;
+      0 0 5px #00ff99,
+      0 0 10px #00ff99,
+      0 0 20px #00ff99,
+      0 0 40px #00ffaaaa;
+    letter-spacing: 0.1em;
     position: relative;
-    z-index: 1;
   }
-  p {
-    font-size: 1.2rem;
-    max-width: 600px;
-    margin: 0 auto 30px auto;
-    line-height: 1.5;
-    position: relative;
-    z-index: 1;
+
+  /* Blinking cursor */
+  .tech-text::after {
+    content: '|';
+    animation: blink 1s step-start infinite;
+    position: absolute;
+    right: -1.2em;
+    top: 0;
+    color: #00ff99;
   }
-  a {
-    color: #ff0055;
-    text-decoration: none;
-    font-weight: bold;
-    border: 1px solid #ff0055;
-    padding: 8px 15px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-    position: relative;
-    z-index: 1;
+
+  @keyframes blink {
+    50% { opacity: 0; }
   }
-  a:hover {
-    background-color: #ff0055;
-    color: black;
+
+  /* Subtle scanline effect */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0,255,153,0.05),
+      rgba(0,255,153,0.05) 1px,
+      transparent 2px,
+      transparent 3px
+    );
   }
 </style>
 </head>
 <body>
-  <div class="shadow-text">THE VOID WATCHES</div>
-
-  <h1>Backroom Access Granted</h1>
-  <p>Welcome to the hidden depths of the Void & Vendor. Here lies the true secrets — cryptic items and forbidden knowledge beyond the surface.</p>
-  <a href="index.html">Return to Store</a>
-
-  <script>
-    if (localStorage.getItem('backroomUnlocked') !== 'true') {
-      alert('Access denied. Return to the main store.');
-      window.location.href = 'index.html';
-    }
-  </script>
+  <div class="tech-text">
+    You have entered the Backroom.<br />
+    Ask VOID-11 HARPER about <span style="color:#ff0044;">"ai fact"</span>.<br />
+    The void is listening...
+  </div>
 </body>
 </html>
