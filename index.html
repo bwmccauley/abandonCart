@@ -3,68 +3,35 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Glitch Store with VOID-11 HARPER</title>
+<title>Glitch Store</title>
 <style>
   body {
     background-color: black;
     color: white;
     font-family: monospace;
     text-align: center;
-    overflow-x: hidden;
-    padding: 20px;
   }
-  .balance {
-    font-size: 1.5rem;
-    margin-bottom: 20px;
-    user-select: none;
-  }
-  .store, .cart {
-    display: inline-block;
-    vertical-align: top;
-    margin: 0 20px;
-  }
-  .store {
-    max-width: 460px;
+  #store {
+    margin: 20px auto;
+    max-width: 900px;
   }
   .item {
-    display: flex;
+    display: inline-block;
+    margin: 20px;
     border: 2px solid white;
-    margin: 10px 0;
     padding: 10px;
-    background: rgba(255,255,255,0.02);
-    box-shadow: 0 0 10px red;
-    animation: flicker 2s infinite;
-    align-items: center;
-    justify-content: space-between;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    width: 200px;
+    vertical-align: top;
   }
   .item img {
-    width: 80px;
-    filter: url(#glitch);
-    transition: filter 0.3s, transform 0.2s;
-    margin-right: 15px;
+    width: 100%;
+    transition: filter 0.3s, box-shadow 0.3s, border-color 0.3s;
+    border: 2px solid transparent;
   }
-  /* Good next item hover glow */
-  .item.good-hover:hover {
-    filter: contrast(200%) hue-rotate(90deg) saturate(2);
-    transform: scale(1.1) rotate(-2deg);
+  .item img.next-item {
     border-color: #39ff14;
-    box-shadow: 0 0 15px #39ff14;
-  }
-  /* Wrong next item hover glow */
-  .item.wrong-hover:hover {
-    border-color: crimson;
-    box-shadow:
-      0 0 15px crimson,
-      0 0 30px crimson inset;
-  }
-  .item.wrong-hover:hover img {
-    filter: contrast(150%) saturate(4) drop-shadow(0 0 5px crimson);
-    transform: scale(1.05) rotate(1deg);
-  }
-  .item-info {
-    flex-grow: 1;
-    text-align: left;
+    box-shadow: 0 0 10px #39ff14;
+    filter: drop-shadow(0 0 6px #39ff14);
   }
   button {
     background: transparent;
@@ -72,161 +39,106 @@
     border: 1px solid white;
     padding: 5px 10px;
     cursor: pointer;
-    transition: background 0.3s, color 0.3s;
-    white-space: nowrap;
-  }
-  button:hover:not(:disabled) {
-    background: white;
-    color: black;
   }
   button:disabled {
-    opacity: 0.3;
-    cursor: default;
+    color: gray;
+    border-color: gray;
+    cursor: not-allowed;
   }
-  h2 {
-    margin-top: 0;
+  #balance {
+    font-size: 1.5rem;
+    margin: 10px 0;
   }
-  .cart {
-    width: 300px;
-    border: 2px solid white;
+  #cart {
+    margin: 20px auto;
+    max-width: 600px;
+    text-align: left;
+    border: 1px solid white;
     padding: 10px;
-    background: rgba(255,255,255,0.02);
-    box-shadow: 0 0 10px red;
-    animation: flicker 2s infinite;
+  }
+  #cart-items {
+    min-height: 50px;
   }
   .cart-item {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-  }
-  .total {
-    font-weight: bold;
-    margin-top: 10px;
-    font-size: 1.2rem;
-  }
-  .checkout-btn {
-    margin-top: 15px;
-    width: 100%;
-    padding: 8px 0;
-    font-weight: bold;
-  }
-  @keyframes flicker {
-    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-      box-shadow: 0 0 10px red;
-    }
-    20%, 24%, 55% {
-      box-shadow: 0 0 2px red;
-    }
+    margin: 3px 0;
   }
   #message {
-    margin-top: 20px;
+    margin-top: 10px;
+    height: 1.5rem;
+    color: #ff4444;
     font-weight: bold;
-    min-height: 24px;
   }
-
-  /* Chatbot styles */
-  #chatbot {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 320px;
-    max-height: 400px;
-    background: rgba(0,0,0,0.9);
-    border: 2px solid #39ff14;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    font-size: 0.9rem;
-    z-index: 1000;
-    user-select: none;
+  #checkout-btn {
+    margin-top: 10px;
+    padding: 8px 16px;
+    font-size: 1rem;
   }
-  #chat-header {
-    background: #010;
-    padding: 8px 12px;
-    color: #39ff14;
-    font-weight: bold;
-    border-bottom: 1px solid #39ff14;
-  }
-  #chat-messages {
-    flex: 1;
+  #chat-container {
+    margin: 30px auto;
+    max-width: 600px;
+    background: #111;
+    border: 1px solid #39ff14;
     padding: 10px;
+    color: #39ff14;
+    font-family: monospace;
+    font-size: 1rem;
+    height: 300px;
     overflow-y: auto;
-    color: #39ff14;
-    text-align: left;
   }
-  .chat-message {
-    margin-bottom: 10px;
-  }
-  .chat-message.bot {
-    color: #ff0044;
-  }
-  .chat-message.user {
-    color: #39ff14;
-    text-align: right;
-  }
-  #chat-input-area {
+  #chat-input-container {
+    max-width: 600px;
+    margin: 10px auto;
     display: flex;
-    border-top: 1px solid #39ff14;
   }
   #chat-input {
     flex: 1;
-    padding: 8px 10px;
     background: black;
-    border: none;
+    border: 1px solid #39ff14;
     color: #39ff14;
     font-family: monospace;
-  }
-  #chat-input:focus {
-    outline: none;
+    font-size: 1rem;
+    padding: 5px;
   }
   #chat-send-btn {
-    background: #39ff14;
-    border: none;
-    color: black;
-    padding: 0 15px;
+    background: transparent;
+    border: 1px solid #39ff14;
+    color: #39ff14;
+    padding: 5px 15px;
     cursor: pointer;
-    font-weight: bold;
   }
-  #chat-send-btn:hover {
-    background: #6fff6f;
+  .chat-message {
+    margin: 6px 0;
+  }
+  .chat-message.user {
+    text-align: right;
+    color: #ff5555;
+  }
+  .chat-message.bot {
+    text-align: left;
+    color: #39ff14;
   }
 </style>
 </head>
 <body>
+  <h1>Welcome to the Glitch Store</h1>
+  <div id="balance">💀 100</div>
+  <div id="store"></div>
 
-<h1>Welcome to the Glitch Store</h1>
+  <div id="cart">
+    <h2>Your Cart</h2>
+    <div id="cart-items">No items added.</div>
+    <div id="cart-total">Total: 💀 0</div>
+    <button id="checkout-btn" disabled>Checkout</button>
+  </div>
 
-<div class="balance">Balance: <span id="balance">💀 100</span></div>
-
-<div class="store" id="store"></div>
-
-<div class="cart">
-  <h2>Cart</h2>
-  <div id="cart-items">No items added.</div>
-  <div class="total" id="cart-total">Total: 💀 0</div>
-  <button class="checkout-btn" id="checkout-btn" disabled>Checkout</button>
   <div id="message"></div>
-</div>
 
-<!-- Glitch SVG filter -->
-<svg width="0" height="0">
-  <filter id="glitch">
-    <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" result="turb" />
-    <feDisplacementMap in="SourceGraphic" in2="turb" scale="10" />
-  </filter>
-</svg>
-
-<!-- Chatbot UI -->
-<div id="chatbot">
-  <div id="chat-header">VOID-11 HARPER</div>
-  <div id="chat-messages"></div>
-  <div id="chat-input-area">
-    <input id="chat-input" type="text" placeholder="Ask for a hint or say hello..." />
+  <div id="chat-container"></div>
+  <div id="chat-input-container">
+    <input id="chat-input" placeholder="Ask VOID-11 HARPER..." autocomplete="off" />
     <button id="chat-send-btn">Send</button>
   </div>
-</div>
 
-<script src="script.js"></script>
-
+  <script src="script.js"></script>
 </body>
 </html>

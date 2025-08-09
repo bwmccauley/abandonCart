@@ -10,14 +10,16 @@ const skull = '💀';
 let balance = 100;
 
 const items = [
-  {name: 'Rusty Key', price: 25, img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=80&h=80&q=80'},
-  {name: 'Foggy Lighthouse', price: 40, img: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?auto=format&fit=crop&w=80&h=80&q=80'},
-  {name: 'Great Lakes Storm', price: 30, img: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=80&h=80&q=80'},
-  {name: 'Misty Forest', price: 20, img: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=80&h=80&q=80'},
-  {name: 'Urban Decay', price: 35, img: 'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?auto=format&fit=crop&w=80&h=80&q=80'}
+  {name: 'Wilted Tomato', price: 15, img: 'https://images.unsplash.com/photo-1506801310323-534be5e7bbf2?auto=format&fit=crop&w=80&h=80&q=80'},
+  {name: 'Rotten Corn', price: 20, img: 'https://images.unsplash.com/photo-1542444459-65e9be5b6e3a?auto=format&fit=crop&w=80&h=80&q=80'},
+  {name: 'Moldy Pumpkin', price: 25, img: 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=80&h=80&q=80'},
+  {name: 'Bruised Apple', price: 10, img: 'https://images.unsplash.com/photo-1473093226795-af9932fe5856?auto=format&fit=crop&w=80&h=80&q=80'},
+  {name: 'Soggy Lettuce', price: 18, img: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?auto=format&fit=crop&w=80&h=80&q=80'}
 ];
 
-let secretSequence = shuffle([...Array(items.length).keys()]);
+// Shorter sequence of 3 items to buy in order
+let secretSequence = shuffle([...Array(items.length).keys()]).slice(0, 3);
+// Uncomment for debugging:
 // console.log("Secret sequence:", secretSequence);
 
 let cart = [];
@@ -38,24 +40,20 @@ function renderStore(){
 
     const canAfford = (balance >= item.price);
     const nextIndex = secretSequence[cart.length];
-    let hoverClass = '';
+
+    let imgClass = '';
     if(index === nextIndex){
-      hoverClass = 'good-hover';
-    } else {
-      hoverClass = 'wrong-hover';
+      imgClass = 'next-item';
     }
 
     div.innerHTML = `
-      <img src="${item.img}" alt="${item.name}">
+      <img src="${item.img}" alt="${item.name}" class="${imgClass}">
       <div class="item-info">
         <h3>${item.name}</h3>
         <div>Price: ${skull} ${item.price}</div>
       </div>
       <button ${canAfford ? '' : 'disabled'} onclick="addToCart(${index})">Add to Cart</button>
     `;
-
-    div.classList.add(hoverClass);
-    div.querySelector('img').classList.add(hoverClass);
 
     storeElement.appendChild(div);
   });
@@ -91,6 +89,10 @@ function addToCart(index){
   const item = items[index];
   if(balance < item.price){
     messageElement.textContent = "Not enough skulls to add this item.";
+    return;
+  }
+  if(index !== secretSequence[cart.length]){
+    messageElement.textContent = "Wrong item! Try again, but keep your skulls...";
     return;
   }
   cart.push(index);
@@ -153,7 +155,7 @@ renderStore();
 renderCart();
 
 /* ----------------- VOID-11 HARPER Chatbot logic ----------------- */
-const chatMessages = document.getElementById('chat-messages');
+const chatMessages = document.getElementById('chat-container');
 const chatInput = document.getElementById('chat-input');
 const chatSendBtn = document.getElementById('chat-send-btn');
 
@@ -176,7 +178,6 @@ function appendMessage(text, sender='bot'){
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Cryptic, mysterious chatbot replies
 function getBotReply(input){
   input = input.toLowerCase().trim();
 
@@ -243,5 +244,5 @@ chatInput.addEventListener('keydown', (e) => {
   }
 });
 
-// Greet on load
+// Initial greeting
 appendMessage("VOID-11 HARPER online. Need a hint? Speak softly...", 'bot');
