@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Glitch Store</title>
+<title>Abandon Cart</title>
 <style>
   body {
     background-color: black;
@@ -56,12 +56,14 @@
 <body>
 <h1>Welcome to the Glitch Store</h1>
 <div id="store"></div>
+
 <svg width="0" height="0">
   <filter id="glitch">
     <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" result="turb" />
     <feDisplacementMap in="SourceGraphic" in2="turb" scale="10" />
   </filter>
 </svg>
+
 <script>
 const storeElement = document.getElementById('store');
 const items = [
@@ -71,6 +73,7 @@ const items = [
   {name: 'Misty Forest', img: 'https://source.unsplash.com/200x200/?forest,misty,michigan'},
   {name: 'Urban Decay', img: 'https://source.unsplash.com/200x200/?rust-belt,decay,michigan'}
 ];
+
 let secretSequence = shuffle([...Array(items.length).keys()]);
 let progress = 0;
 
@@ -92,16 +95,39 @@ function renderStore() {
   });
 }
 
+function showBackroomLink() {
+  let link = document.getElementById('backroomLink');
+  if (!link) {
+    link = document.createElement('a');
+    link.id = 'backroomLink';
+    link.href = 'backroom.html';
+    link.textContent = 'Enter the Backroom';
+    link.style.display = 'block';
+    link.style.marginTop = '20px';
+    link.style.color = '#39ff14'; // neon green color
+    link.style.fontWeight = 'bold';
+    document.body.appendChild(link);
+  }
+  link.style.display = 'block';
+}
+
 function buyItem(index) {
   if (index === secretSequence[progress]) {
     progress++;
     if (progress === secretSequence.length) {
       alert('You unlocked the backroom...');
+      localStorage.setItem('backroomUnlocked', 'true');
+      showBackroomLink();
     }
   } else {
     progress = 0;
     alert('Sequence failed. Try again.');
   }
+}
+
+// On page load, check if backroom already unlocked
+if (localStorage.getItem('backroomUnlocked') === 'true') {
+  showBackroomLink();
 }
 
 renderStore();

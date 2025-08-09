@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Backroom - Void & Vendor</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    background: #000;
+    color: #39ff14;
+    font-family: monospace;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    padding: 40px 20px;
+    text-align: center;
+  }
+  .shadow-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 6rem;
+    font-weight: bold;
+    color: rgba(255, 0, 0, 0.03); /* Very faint red */
+    text-shadow:
+      0 0 20px rgba(255, 0, 0, 0.02),
+      0 0 40px rgba(255, 0, 0, 0.01);
+    user-select: none;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 0;
+  }
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-shadow:
+      0 0 5px #39ff14,
+      0 0 10px #39ff14,
+      0 0 20px #0f0;
+    position: relative;
+    z-index: 1;
+  }
+  p {
+    font-size: 1.2rem;
+    max-width: 600px;
+    margin: 0 auto 30px auto;
+    line-height: 1.5;
+    position: relative;
+    z-index: 1;
+  }
+  a {
+    color: #ff0055;
+    text-decoration: none;
+    font-weight: bold;
+    border: 1px solid #ff0055;
+    padding: 8px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    position: relative;
+    z-index: 1;
+  }
+  a:hover {
+    background-color: #ff0055;
+    color: black;
+  }
+</style>
+</head>
+<body>
+  <div class="shadow-text">THE VOID WATCHES</div>
+
+  <h1>Backroom Access Granted</h1>
+  <p>Welcome to the hidden depths of the Void & Vendor. Here lies the true secrets — cryptic items and forbidden knowledge beyond the surface.</p>
+  <a href="index.html">Return to Store</a>
+
+  <script>
+    if (localStorage.getItem('backroomUnlocked') !== 'true') {
+      alert('Access denied. Return to the main store.');
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
