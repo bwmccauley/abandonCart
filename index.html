@@ -1,292 +1,92 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Void & Vendor — Tech Horror Store (Prototype)</title>
-  <style>
-    :root{--bg:#08080a;--panel:#0e0f12;--accent:#39ff14;--muted:#9aa0a6}
-    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;background:linear-gradient(180deg,#040405 0%, #071217 60%);color:#e6eef6}
-    .wrap{max-width:1024px;margin:28px auto;padding:24px}
-    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-    h1{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;margin:0;font-size:20px}
-    .store{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-
-    .card{background:linear-gradient(180deg,var(--panel),#0b0b0d);border:1px solid rgba(120,120,120,0.03);padding:12px;border-radius:10px;position:relative;overflow:hidden}
-    .thumb{height:130px;background:#050505;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px}
-    .title{font-weight:700;margin:4px 0}
-    .desc{font-size:13px;color:var(--muted);min-height:36px}
-    .buy{margin-top:8px;padding:8px 10px;border-radius:8px;border:0;background:#111;color:var(--accent);cursor:pointer}
-
-    .cart{position:fixed;right:22px;top:22px;background:#070708;border:1px solid rgba(255,255,255,0.04);padding:12px;border-radius:10px;width:260px}
-    .cart h3{margin:0 0 8px 0;font-size:14px}
-    .cart-list{max-height:260px;overflow:auto}
-    .cart-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,0.02);font-size:13px}
-    .checkout{margin-top:8px;padding:8px;border-radius:8px;background:#081018;border:1px solid rgba(57,255,20,0.08);color:var(--accent);cursor:pointer;width:100%}
-
-    /* glitch effects */
-    .glitch{animation:glitch 600ms steps(2) infinite}
-    @keyframes glitch{0%{transform:translateX(0)}25%{transform:translateX(-2px) skewX(-1deg)}50%{transform:translateX(2px) skewX(1deg)}75%{transform:translateX(-1px)}100%{transform:translateX(0)}}
-
-    .flicker{animation:flicker 4s linear infinite}
-    @keyframes flicker{0%{opacity:1}4%{opacity:0.4}6%{opacity:1}10%{opacity:0.6}100%{opacity:1}}
-
-    .overlay{position:fixed;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:0.06;background-image:radial-gradient(circle at 20% 30%, rgba(57,255,20,0.06), transparent 6%),radial-gradient(circle at 80% 70%, rgba(255,40,80,0.03), transparent 8%)}
-
-    .panic{background:#2b0000;color:#ffd6d6;border-color:#6b0000}
-    .success{background:#03210a;color:#b6f7c8;border-color:#10441b}
-
-    .large-banner{padding:18px;border-radius:10px;background:linear-gradient(90deg, rgba(9,9,9,0.9), rgba(14,12,15,0.6));display:flex;align-items:center;gap:12px;margin-bottom:18px}
-    .banner-meta{font-size:12px;color:var(--muted)}
-
-    /* subtle CRT scanlines */
-    .scanlines::after{content:"";position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;background-image:repeating-linear-gradient(transparent,transparent 2px,rgba(0,0,0,0.03) 3px)}
-
-    footer{margin-top:22px;color:var(--muted);font-size:12px}
-
-    /* popup message */
-    .msg{position:fixed;left:50%;transform:translateX(-50%);top:18px;background:#0b0b0b;padding:10px 16px;border-radius:8px;border:1px solid rgba(255,255,255,0.05)}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glitch Store</title>
+<style>
+  body {
+    background-color: black;
+    color: white;
+    font-family: monospace;
+    text-align: center;
+  }
+  .item {
+    display: inline-block;
+    margin: 20px;
+    border: 2px solid white;
+    padding: 10px;
+    width: 200px;
+  }
+  .item img {
+    width: 100%;
+    filter: url(#glitch);
+    transition: filter 0.3s;
+  }
+  .item img:hover {
+    filter: contrast(200%) hue-rotate(90deg) saturate(2);
+  }
+  button {
+    background: transparent;
+    color: white;
+    border: 1px solid white;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div>
-        <h1>Void & Vendor <span style="color:var(--muted);font-weight:400">— Discretionary Items</span></h1>
-        <div class="banner-meta">An independent storefront. Payment requires sequence validation.</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-family:ui-monospace;font-size:12px;color:var(--muted)">Account: <span id="playerId">guest_000</span></div>
-        <div style="font-size:12px;color:var(--muted)">Session: <span id="sessionState">stable</span></div>
-      </div>
-    </header>
-
-    <div class="large-banner scanlines" id="banner">
-      <div style="flex:1">
-        <strong class="flicker">Inventory Update:</strong>
-        <div id="bannerText" style="font-size:13px;color:var(--muted)">New stock added to "Backroom" — unlock to view.</div>
-      </div>
-      <div style="min-width:120px;text-align:right;font-size:12px;color:var(--muted)">Last sync: <span id="lastSync">--:--</span></div>
-    </div>
-
-    <section class="store" id="store"></section>
-
-    <footer>Prototype • Tech-horror store interface • Wrong purchases may corrupt the session</footer>
-  </div>
-
-  <aside class="cart" id="cartBox">
-    <h3>Cart</h3>
-    <div class="cart-list" id="cartList"></div>
-    <button class="checkout" id="checkoutBtn">Checkout — <span id="total">$0.00</span></button>
-    <div style="font-size:11px;color:var(--muted);margin-top:8px">Sequence progress: <span id="seqProg">0/3</span></div>
-  </aside>
-
-  <div class="overlay"></div>
-
-  <div id="msg" class="msg" style="display:none"></div>
-
+<h1>Welcome to the Glitch Store</h1>
+<div id="store"></div>
+<svg width="0" height="0">
+  <filter id="glitch">
+    <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" result="turb"/>
+    <feDisplacementMap in="SourceGraphic" in2="turb" scale="10"/>
+  </filter>
+</svg>
 <script>
-/* === Prototype logic for the sequence puzzle store ===
-   - Items have ids and are expected to be purchased in a secret order.
-   - A correct purchase sequence advances progress; a wrong purchase triggers "glitch" penalties.
-   - Game state is saved to localStorage so the player can return.
-
-   This file is intentionally commented and compact so you can extend.
-*/
-
-// sample inventory
-const inventory = [
-  {id:'alpha-circuit', title:'Alpha Circuit', price:9.99, desc:'A scratched logic board with odd solder marks.'},
-  {id:'noctil-acid', title:'Noctil Acid', price:14.5, desc:'Viscous vial. Labels worn. Pours cold.'},
-  {id:'servo-wrist', title:'Servo Wrist', price:49.99, desc:'Second-hand actuator. Missing a screw.'},
-  {id:'lumen-rod', title:'Lumen Rod', price:5.0, desc:'A weathered glow rod. Emits a faint hum.'},
-  {id:'backdoor-key', title:'Backdoor Key', price:199.99, desc:'Obscure license dongle. Tied to a registry entry.'}
+const storeElement = document.getElementById('store');
+const items = [
+  {name: 'Red Mug', img: 'https://picsum.photos/200?random=1'},
+  {name: 'Strange Doll', img: 'https://picsum.photos/200?random=2'},
+  {name: 'Ancient Book', img: 'https://picsum.photos/200?random=3'},
+  {name: 'Odd Key', img: 'https://picsum.photos/200?random=4'},
+  {name: 'Unknown Device', img: 'https://picsum.photos/200?random=5'}
 ];
+let secretSequence = shuffle([...Array(items.length).keys()]);
+let progress = 0;
 
-// secret correct sequence (can be randomized or fetched from server for more complexity)
-const secretSequence = ['lumen-rod','alpha-circuit','backdoor-key'];
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
 
-// state
-let state = {
-  cart: [],
-  progress: 0, // how many correct in a row
-  unlocked: false
-};
-
-// helpers
-const $ = q=>document.querySelector(q);
-const $$ = q=>Array.from(document.querySelectorAll(q));
-
-function saveState(){localStorage.setItem('vh_state',JSON.stringify(state));}
-function loadState(){try{const s=JSON.parse(localStorage.getItem('vh_state'));if(s) state=s}catch(e){} }
-
-function formatMoney(n){return '$'+n.toFixed(2)}
-
-// UI builders
-function buildStore(){
-  const store = $('#store'); store.innerHTML='';
-  inventory.forEach(it=>{
-    const card = document.createElement('div'); card.className='card scanlines';
-    card.innerHTML = `
-      <div class="thumb" data-id="${it.id}">${it.title}</div>
-      <div class="title">${it.title} <span style="float:right;color:var(--muted);font-weight:600">${formatMoney(it.price)}</span></div>
-      <div class="desc" id="desc-${it.id}">${it.desc}</div>
-      <button class="buy" data-id="${it.id}">Add to cart</button>
-    `;
-    store.appendChild(card);
+function renderStore() {
+  storeElement.innerHTML = '';
+  items.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `<img src="${item.img}" alt="${item.name}"><h3>${item.name}</h3><button onclick="buyItem(${index})">Buy</button>`;
+    storeElement.appendChild(div);
   });
 }
 
-function refreshCart(){
-  const list = $('#cartList'); list.innerHTML='';
-  let total=0;
-  state.cart.forEach(id=>{
-    const it = inventory.find(x=>x.id===id);
-    total+=it.price;
-    const row = document.createElement('div'); row.className='cart-item';
-    row.innerHTML = `<div>${it.title}</div><div>${formatMoney(it.price)}</div>`;
-    list.appendChild(row);
-  });
-  $('#total').textContent = formatMoney(total);
-  $('#seqProg').textContent = `${state.progress}/${secretSequence.length}`;
-}
-
-function showMsg(text,timeout=2800){const m=$('#msg');m.textContent=text; m.style.display='block'; clearTimeout(m._t); m._t=setTimeout(()=>m.style.display='none', timeout);} 
-
-function applyGlitchPenalty(){
-  // visual: flash banner and shake
-  const b = $('#banner'); b.classList.add('glitch');
-  $('#sessionState').textContent='unstable';
-  b.style.border='1px solid rgba(255,20,20,0.06)';
-  showMsg('Sequence error. Session integrity degraded.',3000);
-  // audio buzz
-  playTone(80,0.12);
-  setTimeout(()=>{b.classList.remove('glitch'); $('#sessionState').textContent='stable'; b.style.border='none'},1600);
-  // optionally punish: clear cart
-  state.cart=[];
-  state.progress=0;
-  saveState();
-  refreshCart();
-}
-
-function handleCorrectAdvance(itemId){
-  state.cart.push(itemId);
-  state.progress++;
-  showMsg('Item accepted.',1200);
-  playTone(440 + state.progress*120, 0.07);
-  if(state.progress>=secretSequence.length){
-    // unlocked: grant access to "backroom"
-    state.unlocked = true;
-    showMsg('Backroom unlocked. Checkout available.',5000);
-    $('#bannerText').textContent = 'Backroom inventory unlocked. New listings available.';
-    revealBackroom();
-  }
-  saveState();
-  refreshCart();
-}
-
-function revealBackroom(){
-  // add a new secret item to the store when unlocked
-  if(inventory.find(i=>i.id==='backroom-core')) return;
-  inventory.push({id:'backroom-core',title:'Backroom Core',price:999.99,desc:'A cracked core, humming with old processes.'});
-  buildStore();
-}
-
-// buy flow
-function buyItem(id){
-  // If already unlocked and item is backroom-core, allow directly
-  if(state.unlocked && id==='backroom-core'){
-    state.cart.push(id); saveState(); refreshCart(); showMsg('Backroom core added.'); return;
-  }
-  // expected id at current progress
-  const expected = secretSequence[state.progress];
-  if(id === expected){
-    handleCorrectAdvance(id);
-  } else {
-    applyGlitchPenalty();
-  }
-}
-
-// Checkout
-function checkout(){
-  if(!state.unlocked){
-    showMsg('Checkout locked. Complete the required sequence first.'); playTone(160,0.2); return;
-  }
-  // simple success animation & reveal final message
-  showMsg('Payment accepted. Sequence validated.',4200);
-  document.body.classList.add('success');
-  playTone(880,0.18);
-  // as "reward", reveal hidden text in descriptions
-  inventory.forEach(it=>{const d=$('#desc-'+it.id); if(d){d.textContent = d.textContent + ' — VIN: 0x'+Math.random().toString(16).slice(2,10);} });
-}
-
-// audio tone (tiny oscillator for feedback)
-let audioCtx = null;
-function playTone(freq, duration=0.1){
-  try{
-    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-    o.type='sine'; o.frequency.value = freq; g.gain.value = 0.02;
-    o.connect(g); g.connect(audioCtx.destination); o.start();
-    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-    setTimeout(()=>{ try{o.stop(); o.disconnect(); g.disconnect();}catch(e){} }, duration*1000 + 30);
-  }catch(e){/* no audio */}
-}
-
-// small ambient hum loop
-function startAmbient(){
-  try{
-    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-    o.type='triangle'; o.frequency.value = 55; g.gain.value = 0.003;
-    o.connect(g); g.connect(audioCtx.destination); o.start();
-    window._ambientOsc = o; window._ambientGain = g;
-  }catch(e){}
-}
-
-// event wiring
-function wire(){
-  document.addEventListener('click', e=>{
-    const b = e.target.closest('.buy'); if(b){ const id=b.dataset.id; buyItem(id); }
-  });
-  $('#checkoutBtn').addEventListener('click', checkout);
-}
-
-// little dynamic text modifier to creep descriptions
-function creepify(){
-  setInterval(()=>{
-    const idx = Math.floor(Math.random()*inventory.length);
-    const it = inventory[idx];
-    if(!it) return;
-    const d = document.getElementById('desc-'+it.id);
-    if(!d) return;
-    // subtle random mutation
-    if(Math.random()<0.2){
-      const seeds = ['
-No response from node.','
-Registry mismatch detected.','
-Customer 0x9a… left a strange review.','
-Label peeling — residue adheres.'];
-      d.textContent = it.desc + ' ' + seeds[Math.floor(Math.random()*seeds.length)];
-      // temporary visual flicker
-      d.classList.add('flicker'); setTimeout(()=>d.classList.remove('flicker'),1200);
+function buyItem(index) {
+  if (index === secretSequence[progress]) {
+    progress++;
+    if (progress === secretSequence.length) {
+      alert('You unlocked the backroom...');
     }
-  },4200);
+  } else {
+    progress = 0;
+    alert('Sequence failed. Try again.');
+  }
 }
 
-// init
-(function init(){
-  loadState();
-  // pseudo player id
-  document.getElementById('playerId').textContent = 'guest_' + Math.random().toString(36).slice(2,8);
-  document.getElementById('lastSync').textContent = new Date().toLocaleTimeString();
-  buildStore();
-  wire();
-  refreshCart();
-  creepify();
-  startAmbient();
-})();
-
+renderStore();
 </script>
 </body>
 </html>
