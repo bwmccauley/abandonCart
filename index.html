@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Glitch Store</title>
 <style>
   body {
@@ -10,6 +10,7 @@
     color: white;
     font-family: monospace;
     text-align: center;
+    overflow-x: hidden;
   }
   .item {
     display: inline-block;
@@ -17,14 +18,18 @@
     border: 2px solid white;
     padding: 10px;
     width: 200px;
+    background: rgba(255, 255, 255, 0.02);
+    box-shadow: 0 0 10px red;
+    animation: flicker 2s infinite;
   }
   .item img {
     width: 100%;
     filter: url(#glitch);
-    transition: filter 0.3s;
+    transition: filter 0.3s, transform 0.2s;
   }
   .item img:hover {
     filter: contrast(200%) hue-rotate(90deg) saturate(2);
+    transform: scale(1.05) rotate(-2deg);
   }
   button {
     background: transparent;
@@ -32,6 +37,19 @@
     border: 1px solid white;
     padding: 5px 10px;
     cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+  }
+  button:hover {
+    background: white;
+    color: black;
+  }
+  @keyframes flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+      box-shadow: 0 0 10px red;
+    }
+    20%, 24%, 55% {
+      box-shadow: 0 0 2px red;
+    }
   }
 </style>
 </head>
@@ -40,18 +58,18 @@
 <div id="store"></div>
 <svg width="0" height="0">
   <filter id="glitch">
-    <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" result="turb"/>
-    <feDisplacementMap in="SourceGraphic" in2="turb" scale="10"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" result="turb" />
+    <feDisplacementMap in="SourceGraphic" in2="turb" scale="10" />
   </filter>
 </svg>
 <script>
 const storeElement = document.getElementById('store');
 const items = [
-  {name: 'Red Mug', img: 'https://picsum.photos/200?random=1'},
-  {name: 'Strange Doll', img: 'https://picsum.photos/200?random=2'},
-  {name: 'Ancient Book', img: 'https://picsum.photos/200?random=3'},
-  {name: 'Odd Key', img: 'https://picsum.photos/200?random=4'},
-  {name: 'Unknown Device', img: 'https://picsum.photos/200?random=5'}
+  {name: 'Rusty Key', img: 'https://source.unsplash.com/200x200/?michigan,abandoned'},
+  {name: 'Foggy Lighthouse', img: 'https://source.unsplash.com/200x200/?lighthouse,fog,michigan'},
+  {name: 'Great Lakes Storm', img: 'https://source.unsplash.com/200x200/?great-lakes,storm,michigan'},
+  {name: 'Misty Forest', img: 'https://source.unsplash.com/200x200/?forest,misty,michigan'},
+  {name: 'Urban Decay', img: 'https://source.unsplash.com/200x200/?rust-belt,decay,michigan'}
 ];
 let secretSequence = shuffle([...Array(items.length).keys()]);
 let progress = 0;
