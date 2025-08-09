@@ -89,7 +89,7 @@
     position: fixed;
     width: 280px;
     height: 160px;
-    background: #100f0f;
+    background: #111;
     border: 2px solid #39ff14;
     border-radius: 12px;
     padding: 10px;
@@ -195,7 +195,6 @@
     {name: 'Soggy Lettuce', price: 18, img: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?auto=format&fit=crop&w=80&h=80&q=80'}
   ];
 
-  // Shuffle & pick 3 item secret sequence
   function shuffle(array) {
     for(let i = array.length -1; i>0; i--){
       const j = Math.floor(Math.random() * (i+1));
@@ -205,12 +204,10 @@
   }
 
   let secretSequence = shuffle([...Array(items.length).keys()]).slice(0,3);
-  // console.log("Secret sequence:", secretSequence);
 
   let balance = 100;
   let cart = [];
 
-  // DOM Elements
   const storeElement = document.getElementById('store');
   const balanceElement = document.getElementById('balance');
   const cartItemsElement = document.getElementById('cart-items');
@@ -226,7 +223,6 @@
   const chatbotInput = document.getElementById('chatbot-input');
   const chatbotSendBtn = document.getElementById('chatbot-send');
 
-  // Render store items
   function renderStore(){
     storeElement.innerHTML = '';
     items.forEach((item, index) => {
@@ -280,7 +276,6 @@
     checkoutBtn.disabled = false;
   }
 
-  // Add item to cart logic
   window.addToCart = function(index){
     const item = items[index];
     if(balance < item.price){
@@ -298,7 +293,6 @@
     renderCart();
   }
 
-  // Reset game function
   function resetGame(msg){
     messageElement.textContent = msg || 'Sequence failed. Cart reset.';
     cart.forEach(i => {
@@ -309,7 +303,6 @@
     renderCart();
   }
 
-  // Checkout function
   function checkout(){
     if(cart.length !== secretSequence.length){
       resetGame(`You must buy all ${secretSequence.length} items in correct order!`);
@@ -431,12 +424,41 @@
 
   /* ------------- Floating chatbot movement ------------- */
 
-  // Starting position near bottom-right
   let posX = window.innerWidth - 320;
   let posY = window.innerHeight - 200;
   let speedX = 1.5 + Math.random() * 1;
   let speedY = 1 + Math.random() * 1;
 
+  let isDragging = false;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+
+  chatbotHeader.style.cursor = 'grab';
+
+  chatbotHeader.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    dragOffsetX = e.clientX - chatbot.offsetLeft;
+    dragOffsetY = e.clientY - chatbot.offsetTop;
+    chatbotHeader.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    chatbotHeader.style.cursor = 'grab';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if(isDragging){
+      posX = e.clientX - dragOffsetX;
+      posY = e.clientY - dragOffsetY;
+
+      posX = Math.min(Math.max(0, posX), window.innerWidth - chatbot.offsetWidth);
+      posY = Math.min(Math.max(0, posY), window.innerHeight - chatbot.offsetHeight);
+
+      chatbot.style.left = posX + 'px';
+      chatbot.style.top = posY + 'px';
+    }
+  });
 
   function moveChatbot(){
     if(!isDragging){
@@ -468,39 +490,6 @@
     requestAnimationFrame(moveChatbot);
   }
   moveChatbot();
-
-  /* -------- Make chatbot draggable -------- */
-  let isDragging = false;
-  let dragOffsetX = 0;
-  let dragOffsetY = 0;
-
-  chatbotHeader.style.cursor = 'grab';
-
-  chatbotHeader.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    dragOffsetX = e.clientX - chatbot.offsetLeft;
-    dragOffsetY = e.clientY - chatbot.offsetTop;
-    chatbotHeader.style.cursor = 'grabbing';
-  });
-
-  document.addEventListener('mouseup', () => {
-    isDragging = false;
-    chatbotHeader.style.cursor = 'grab';
-  });
-
-  document.addEventListener('mousemove', (e) => {
-    if(isDragging){
-      posX = e.clientX - dragOffsetX;
-      posY = e.clientY - dragOffsetY;
-
-      // Keep within viewport bounds
-      posX = Math.min(Math.max(0, posX), window.innerWidth - chatbot.offsetWidth);
-      posY = Math.min(Math.max(0, posY), window.innerHeight - chatbot.offsetHeight);
-
-      chatbot.style.left = posX + 'px';
-      chatbot.style.top = posY + 'px';
-    }
-  });
 
 })();
 </script>
