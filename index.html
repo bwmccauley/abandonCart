@@ -89,7 +89,7 @@
     position: fixed;
     width: 280px;
     height: 160px;
-    background: #111;
+    background: #100f0f;
     border: 2px solid #39ff14;
     border-radius: 12px;
     padding: 10px;
@@ -358,6 +358,12 @@
   function getBotReply(input){
     input = input.toLowerCase().trim();
 
+    if(input.includes('blackjack')){
+      setTimeout(() => {
+        window.location.href = 'blackjack.html';
+      }, 500);
+      return "Loading... Prepare to play blackjack.";
+    }
     if(input.includes('fact') || input.includes('ai fact') || input.includes('ai')){
       return creepyAIFacts[Math.floor(Math.random() * creepyAIFacts.length)];
     }
@@ -431,32 +437,34 @@
   let speedX = 1.5 + Math.random() * 1;
   let speedY = 1 + Math.random() * 1;
 
+
   function moveChatbot(){
-    const w = chatbot.offsetWidth;
-    const h = chatbot.offsetHeight;
+    if(!isDragging){
+      const w = chatbot.offsetWidth;
+      const h = chatbot.offsetHeight;
 
-    posX += speedX;
-    posY += speedY;
+      posX += speedX;
+      posY += speedY;
 
-    if(posX + w > window.innerWidth){
-      posX = window.innerWidth - w;
-      speedX *= -1;
-    } else if(posX < 0){
-      posX = 0;
-      speedX *= -1;
+      if(posX + w > window.innerWidth){
+        posX = window.innerWidth - w;
+        speedX *= -1;
+      } else if(posX < 0){
+        posX = 0;
+        speedX *= -1;
+      }
+
+      if(posY + h > window.innerHeight){
+        posY = window.innerHeight - h;
+        speedY *= -1;
+      } else if(posY < 0){
+        posY = 0;
+        speedY *= -1;
+      }
+
+      chatbot.style.left = posX + 'px';
+      chatbot.style.top = posY + 'px';
     }
-
-    if(posY + h > window.innerHeight){
-      posY = window.innerHeight - h;
-      speedY *= -1;
-    } else if(posY < 0){
-      posY = 0;
-      speedY *= -1;
-    }
-
-    chatbot.style.left = posX + 'px';
-    chatbot.style.top = posY + 'px';
-
     requestAnimationFrame(moveChatbot);
   }
   moveChatbot();

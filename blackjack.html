@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Blackjack vs VOID-11 HARPER</title>
+<style>
+  /* Basic sci-fi dark theme */
+  body {
+    margin: 0; padding: 20px;
+    background: linear-gradient(135deg, #000010, #001922);
+    color: #39ff14;
+    font-family: 'Orbitron', monospace, sans-serif;
+    user-select: none;
+    overflow-x: hidden;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 0.3em;
+    text-shadow: 0 0 10px #39ff14;
+  }
+  #game {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #001000bb;
+    border: 2px solid #39ff14;
+    border-radius: 15px;
+    padding: 20px;
+  }
+  #status {
+    margin: 10px 0;
+    min-height: 1.5em;
+    font-weight: bold;
+    text-align: center;
+  }
+  .hand {
+    margin: 10px 0;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  .card {
+    width: 60px;
+    height: 90px;
+    background: #003300;
+    border: 2px solid #39ff14;
+    border-radius: 8px;
+    color: #39ff14;
+    font-size: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 8px #39ff14;
+  }
+  button {
+    background: transparent;
+    color: #39ff14;
+    border: 1.5px solid #39ff14;
+    padding: 8px 15px;
+    margin: 0 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+  }
+  button:hover:not(:disabled) {
+    background: #39ff14;
+    color: #001900;
+  }
+  button:disabled {
+    color: #004400;
+    border-color: #004400;
+    cursor: not-allowed;
+  }
+  #round-info {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+  }
+
+  /* Floating lizard chatbot */
+  #lizard-chatbot {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 160px;
+    height: 160px;
+    background: linear-gradient(135deg, #093422, #012211);
+    border: 3px solid #39ff14;
+    border-radius: 50%;
+    box-shadow: 0 0 25px #39ff14;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace, sans-serif;
+    color: #39ff14;
+    user-select: none;
+    z-index: 10000;
+    cursor: default;
+  }
+  #lizard-chatbot .face {
+    font-size: 3.5rem;
+    line-height: 1;
+    margin-bottom: 6px;
+    user-select: none;
+  }
+  #lizard-chatbot .text {
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 0 8px;
+  }
+  @media (min-width: 1024px) {
+    #lizard-chatbot {
+      width: 140px;
+      height: 140px;
+      bottom: 30px;
+      right: 30px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>Blackjack vs VOID-11 HARPER</h1>
+
+<div id="game">
+  <div id="round-info">Round 1 of 3</div>
+
+  <div><strong>Your Hand:</strong></div>
+  <div id="player-hand" class="hand"></div>
+  <div><strong>Bot's Hand:</strong></div>
+  <div id="bot-hand" class="hand"></div>
+
+  <div id="status"></div>
+
+  <div style="text-align:center;">
+    <button id="hit-btn">Hit</button>
+    <button id="stand-btn">Stand</button>
+    <button id="next-round-btn" disabled>Next Round</button>
+  </div>
+</div>
+
+<!-- Floating chatbot lizard -->
+<div id="lizard-chatbot" title="VOID-11 HARPER - Opponent AI">
+  <div class="face">🦎</div>
+  <div class="text">The game begins...</div>
+</div>
+
+<script>
+(() => {
+  const maxRounds = 3;
+  let currentRound = 1;
+
+  const hitBtn = document.getElementById('hit-btn');
+  const standBtn = document.getElementById('stand-btn');
+  const nextRoundBtn = document.getElementById('next-round-btn');
+  const playerHandDiv = document.getElementById('player-hand');
+  const botHandDiv = document.getElementById('bot-hand');
+  const statusDiv = document.getElementById('status');
+  const roundInfoDiv = document.getElementById('round-info');
+  const lizardChat = document.getElementById('lizard-chatbot');
+  const lizardText = lizardChat.querySelector('.text');
+
+  // Cards: simplified - only ranks matter here, suits omitted for clarity
+  const cardRanks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+  // Assign card values for blackjack
+  function getCardValue(card) {
+    if (card === 'A') return 11;
+    if (['J','Q','K'].includes(card)) return 10;
+    return parseInt(card);
+  }
+
+  // Draw random card
+  function drawCard() {
+    return cardRanks[Math.floor(Math.random() * cardRanks.length)];
+  }
+
+  // Calculate hand total (account for Aces)
+  function calcTotal(hand) {
+    let total = 0;
+    let aceCount = 0;
+    hand.forEach(card => {
+      total += getCardValue(card);
+      if(card === 'A') aceCount++;
+    });
+    // Adjust Aces from 11 to 1 if busted
+    while(total > 21 && aceCount > 0){
+      total -= 10;
+      aceCount--;
+    }
+    return total;
+  }
+
+  // Render cards in a hand
+  function renderHand(container, hand, hideFirst=false) {
+    container.innerHTML = '';
+    hand.forEach((card, i) => {
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.textContent = (hideFirst && i === 0) ? '🂠' : card; // hide first card if needed
+      container.appendChild(div);
+    });
+  }
+
+  // Bot AI logic (easy difficulty)
+  function botPlay(hand) {
+    let total = calcTotal(hand);
+    while(total < 16){  // easy difficulty threshold
+      hand.push(drawCard());
+      total = calcTotal(hand);
+    }
+    return hand;
+  }
+
+  // Update lizard chatbot text
+  function updateLizardText(text){
+    lizardText.textContent = text;
+  }
+
+  // Game state variables
+  let playerHand = [];
+  let botHand = [];
+  let roundOver = false;
+
+  function startRound(){
+    playerHand = [drawCard(), drawCard()];
+    botHand = [drawCard(), drawCard()];
+    roundOver = false;
+    roundInfoDiv.textContent = `Round ${currentRound} of ${maxRounds}`;
+    statusDiv.textContent = '';
+    renderHand(playerHandDiv, playerHand);
+    renderHand(botHandDiv, botHand, true);
+    hitBtn.disabled = false;
+    standBtn.disabled = false;
+    nextRoundBtn.disabled = true;
+    updateLizardText("Ready to challenge you...");
+  }
+
+  function checkEndCondition(){
+    const playerTotal = calcTotal(playerHand);
+    const botTotal = calcTotal(botHand);
+
+    if(playerTotal > 21){
+      statusDiv.textContent = "You busted! The lizard laughs...";
+      roundOver = true;
+      endRound(false);
+      return true;
+    }
+    if(botTotal > 21){
+      statusDiv.textContent = "Opponent busted! You win this round.";
+      roundOver = true;
+      endRound(true);
+      return true;
+    }
+    return false;
+  }
+
+  // End round with playerWin true/false
+  function endRound(playerWin){
+    hitBtn.disabled = true;
+    standBtn.disabled = true;
+    nextRoundBtn.disabled = false;
+
+    renderHand(botHandDiv, botHand, false);
+    if(playerWin){
+      updateLizardText("...Your victory is noted.");
+    } else {
+      updateLizardText("...You are weak. I adapt.");
+    }
+  }
+
+  hitBtn.addEventListener('click', () => {
+    if(roundOver) return;
+    playerHand.push(drawCard());
+    renderHand(playerHandDiv, playerHand);
+    if(checkEndCondition()) return;
+    updateLizardText("You take a card...");
+
+  });
+
+  standBtn.addEventListener('click', () => {
+    if(roundOver) return;
+    updateLizardText("I contemplate your move...");
+    // Bot reveals hand and plays
+    botHand = botPlay(botHand);
+    renderHand(botHandDiv, botHand, false);
+
+    const playerTotal = calcTotal(playerHand);
+    const botTotal = calcTotal(botHand);
+
+    if(botTotal > 21 || playerTotal > botTotal){
+      statusDiv.textContent = "You win this round!";
+      endRound(true);
+    } else if(botTotal === playerTotal){
+      statusDiv.textContent = "Round tied.";
+      endRound(false);
+    } else {
+      statusDiv.textContent = "You lose this round.";
+      endRound(false);
+    }
+  });
+
+  nextRoundBtn.addEventListener('click', () => {
+    if(currentRound < maxRounds){
+      currentRound++;
+      startRound();
+    } else {
+      statusDiv.textContent = "Game over. Thanks for playing.";
+      updateLizardText("Returning to the void...");
+      hitBtn.disabled = true;
+      standBtn.disabled = true;
+      nextRoundBtn.disabled = true;
+    }
+  });
+
+  startRound();
+
+})();
+</script>
+
+</body>
+</html>
