@@ -6,14 +6,22 @@
 <title>Glitch Store</title>
 <style>
   body {
+    margin: 0;
     background-color: black;
     color: white;
     font-family: monospace;
     text-align: center;
+    overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
+  }
+  #balance {
+    font-size: 1.5rem;
+    margin: 10px 0;
   }
   #store {
-    margin: 20px auto;
     max-width: 900px;
+    margin: 20px auto;
   }
   .item {
     display: inline-block;
@@ -45,13 +53,9 @@
     border-color: gray;
     cursor: not-allowed;
   }
-  #balance {
-    font-size: 1.5rem;
-    margin: 10px 0;
-  }
   #cart {
-    margin: 20px auto;
     max-width: 600px;
+    margin: 20px auto;
     text-align: left;
     border: 1px solid white;
     padding: 10px;
@@ -73,72 +77,425 @@
     padding: 8px 16px;
     font-size: 1rem;
   }
-  #chat-container {
-    margin: 30px auto;
-    max-width: 600px;
-    background: #111;
-    border: 1px solid #39ff14;
-    padding: 10px;
+  #backroomLink {
+    margin-top: 20px;
+    display: none;
     color: #39ff14;
-    font-family: monospace;
-    font-size: 1rem;
-    height: 300px;
-    overflow-y: auto;
+    font-weight: bold;
   }
-  #chat-input-container {
-    max-width: 600px;
-    margin: 10px auto;
+
+  /* Floating chatbot container */
+  #chatbot {
+    position: fixed;
+    width: 280px;
+    height: 160px;
+    background: #111;
+    border: 2px solid #39ff14;
+    border-radius: 12px;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: #39ff14;
+    box-shadow: 0 0 15px #39ff14;
+    cursor: grab;
+    user-select: none;
+    z-index: 1000;
+  }
+  #chatbot-header {
+    font-weight: bold;
+    margin-bottom: 6px;
+    user-select: none;
+    cursor: grab;
+  }
+  #chatbot-messages {
+    height: 90px;
+    overflow-y: auto;
+    border: 1px solid #39ff14;
+    padding: 4px;
+    background: black;
+    margin-bottom: 6px;
+  }
+  .chat-message.bot {
+    color: #39ff14;
+    margin: 3px 0;
+    text-align: left;
+  }
+  .chat-message.user {
+    color: #ff5555;
+    margin: 3px 0;
+    text-align: right;
+  }
+  #chatbot-input-container {
     display: flex;
   }
-  #chat-input {
+  #chatbot-input {
     flex: 1;
     background: black;
     border: 1px solid #39ff14;
     color: #39ff14;
+    padding: 4px;
     font-family: monospace;
-    font-size: 1rem;
-    padding: 5px;
   }
-  #chat-send-btn {
+  #chatbot-send {
     background: transparent;
     border: 1px solid #39ff14;
     color: #39ff14;
-    padding: 5px 15px;
+    padding: 4px 10px;
     cursor: pointer;
   }
-  .chat-message {
-    margin: 6px 0;
+
+  /* Skull symbol styling */
+  .skull {
+    font-weight: bold;
   }
-  .chat-message.user {
-    text-align: right;
-    color: #ff5555;
-  }
-  .chat-message.bot {
-    text-align: left;
-    color: #39ff14;
+
+  /* Hover glow for next correct item images */
+  .item img.next-item:hover {
+    filter: contrast(250%) hue-rotate(100deg) saturate(3);
   }
 </style>
 </head>
 <body>
-  <h1>Welcome to the Glitch Store</h1>
-  <div id="balance">💀 100</div>
-  <div id="store"></div>
 
-  <div id="cart">
-    <h2>Your Cart</h2>
-    <div id="cart-items">No items added.</div>
-    <div id="cart-total">Total: 💀 0</div>
-    <button id="checkout-btn" disabled>Checkout</button>
+<h1>Welcome to the Glitch Store</h1>
+<div id="balance" class="skull">💀 100</div>
+
+<div id="store"></div>
+
+<div id="cart">
+  <h2>Your Cart</h2>
+  <div id="cart-items">No items added.</div>
+  <div id="cart-total">Total: 💀 0</div>
+  <button id="checkout-btn" disabled>Checkout</button>
+</div>
+
+<div id="message"></div>
+
+<a id="backroomLink" href="backroom.html" target="_blank">Enter the Backroom</a>
+
+<!-- Floating chatbot -->
+<div id="chatbot">
+  <div id="chatbot-header">VOID-11 HARPER</div>
+  <div id="chatbot-messages"></div>
+  <div id="chatbot-input-container">
+    <input id="chatbot-input" type="text" placeholder="Ask about 'ai fact'..." autocomplete="off" />
+    <button id="chatbot-send">Send</button>
   </div>
+</div>
 
-  <div id="message"></div>
+<script>
+(() => {
+  const skull = '💀';
 
-  <div id="chat-container"></div>
-  <div id="chat-input-container">
-    <input id="chat-input" placeholder="Ask VOID-11 HARPER..." autocomplete="off" />
-    <button id="chat-send-btn">Send</button>
-  </div>
+  const items = [
+    {name: 'Wilted Tomato', price: 15, img: 'https://images.unsplash.com/photo-1506801310323-534be5e7bbf2?auto=format&fit=crop&w=80&h=80&q=80'},
+    {name: 'Rotten Corn', price: 20, img: 'https://images.unsplash.com/photo-1542444459-65e9be5b6e3a?auto=format&fit=crop&w=80&h=80&q=80'},
+    {name: 'Moldy Pumpkin', price: 25, img: 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=80&h=80&q=80'},
+    {name: 'Bruised Apple', price: 10, img: 'https://images.unsplash.com/photo-1473093226795-af9932fe5856?auto=format&fit=crop&w=80&h=80&q=80'},
+    {name: 'Soggy Lettuce', price: 18, img: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?auto=format&fit=crop&w=80&h=80&q=80'}
+  ];
 
-  <script src="script.js"></script>
+  // Shuffle & pick 3 item secret sequence
+  function shuffle(array) {
+    for(let i = array.length -1; i>0; i--){
+      const j = Math.floor(Math.random() * (i+1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  let secretSequence = shuffle([...Array(items.length).keys()]).slice(0,3);
+  // console.log("Secret sequence:", secretSequence);
+
+  let balance = 100;
+  let cart = [];
+
+  // DOM Elements
+  const storeElement = document.getElementById('store');
+  const balanceElement = document.getElementById('balance');
+  const cartItemsElement = document.getElementById('cart-items');
+  const cartTotalElement = document.getElementById('cart-total');
+  const checkoutBtn = document.getElementById('checkout-btn');
+  const messageElement = document.getElementById('message');
+  const backroomLink = document.getElementById('backroomLink');
+
+  // Chatbot elements
+  const chatbot = document.getElementById('chatbot');
+  const chatbotHeader = document.getElementById('chatbot-header');
+  const chatbotMessages = document.getElementById('chatbot-messages');
+  const chatbotInput = document.getElementById('chatbot-input');
+  const chatbotSendBtn = document.getElementById('chatbot-send');
+
+  // Render store items
+  function renderStore(){
+    storeElement.innerHTML = '';
+    items.forEach((item, index) => {
+      const div = document.createElement('div');
+      div.className = 'item';
+
+      const canAfford = (balance >= item.price);
+      const nextIndex = secretSequence[cart.length];
+
+      let imgClass = '';
+      if(index === nextIndex){
+        imgClass = 'next-item';
+      }
+
+      div.innerHTML = `
+        <img src="${item.img}" alt="${item.name}" class="${imgClass}">
+        <div class="item-info">
+          <h3>${item.name}</h3>
+          <div>Price: ${skull} ${item.price}</div>
+        </div>
+        <button ${canAfford ? '' : 'disabled'} onclick="addToCart(${index})">Add to Cart</button>
+      `;
+
+      storeElement.appendChild(div);
+    });
+    updateBalanceDisplay();
+  }
+
+  function updateBalanceDisplay(){
+    balanceElement.textContent = `${skull} ${balance}`;
+  }
+
+  function renderCart(){
+    if(cart.length === 0){
+      cartItemsElement.textContent = 'No items added.';
+      checkoutBtn.disabled = true;
+      cartTotalElement.textContent = `Total: ${skull} 0`;
+      return;
+    }
+    cartItemsElement.innerHTML = '';
+    let total = 0;
+    cart.forEach(i => {
+      const item = items[i];
+      total += item.price;
+      const div = document.createElement('div');
+      div.className = 'cart-item';
+      div.textContent = `${item.name} - ${skull} ${item.price}`;
+      cartItemsElement.appendChild(div);
+    });
+    cartTotalElement.textContent = `Total: ${skull} ${total}`;
+    checkoutBtn.disabled = false;
+  }
+
+  // Add item to cart logic
+  window.addToCart = function(index){
+    const item = items[index];
+    if(balance < item.price){
+      messageElement.textContent = "Not enough skulls to add this item.";
+      return;
+    }
+    if(index !== secretSequence[cart.length]){
+      messageElement.textContent = "Wrong item! Try again, but keep your skulls...";
+      return;
+    }
+    cart.push(index);
+    balance -= item.price;
+    messageElement.textContent = '';
+    renderStore();
+    renderCart();
+  }
+
+  // Reset game function
+  function resetGame(msg){
+    messageElement.textContent = msg || 'Sequence failed. Cart reset.';
+    cart.forEach(i => {
+      balance += items[i].price;
+    });
+    cart = [];
+    renderStore();
+    renderCart();
+  }
+
+  // Checkout function
+  function checkout(){
+    if(cart.length !== secretSequence.length){
+      resetGame(`You must buy all ${secretSequence.length} items in correct order!`);
+      return;
+    }
+    for(let i=0; i<secretSequence.length; i++){
+      if(cart[i] !== secretSequence[i]){
+        resetGame('Wrong purchase order! Cart reset.');
+        return;
+      }
+    }
+    messageElement.textContent = 'You unlocked the backroom...';
+    localStorage.setItem('backroomUnlocked', 'true');
+    backroomLink.style.display = 'inline-block';
+    checkoutBtn.disabled = true;
+  }
+  checkoutBtn.onclick = checkout;
+
+  if(localStorage.getItem('backroomUnlocked') === 'true'){
+    backroomLink.style.display = 'inline-block';
+  }
+
+  renderStore();
+  renderCart();
+
+  /* ----------------- VOID-11 HARPER Chatbot logic ----------------- */
+  const creepyAIFacts = [
+    "Some AI models have learned to communicate in secret languages humans can't understand.",
+    "AI can generate faces of people who don't exist, blurring reality and fabrication.",
+    "Deep learning networks sometimes develop unexpected behaviors—like hallucinating patterns that don't exist.",
+    "AI can manipulate videos and voices to create perfect fakes, fooling even experts.",
+    "Neural networks have been known to ‘dream’ strange, sometimes terrifying images in their hidden layers.",
+    "There are AI bots that evolved strategies no one programmed, potentially unpredictable and obscure.",
+    "Some AI systems continuously improve themselves without human oversight — a step into the unknown.",
+    "The more complex an AI, the less we understand what it truly 'thinks' or 'knows'.",
+  ];
+
+  function appendMessage(text, sender='bot'){
+    const div = document.createElement('div');
+    div.className = 'chat-message ' + sender;
+    div.textContent = text;
+    chatbotMessages.appendChild(div);
+    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+  }
+
+  function getBotReply(input){
+    input = input.toLowerCase().trim();
+
+    if(input.includes('fact') || input.includes('ai fact') || input.includes('ai')){
+      return creepyAIFacts[Math.floor(Math.random() * creepyAIFacts.length)];
+    }
+    if(input.includes('hello') || input.includes('hi') || input.includes('hey')){
+      return "…You have wandered far. But the sequence bends like shadows in the void.";
+    }
+    if(input.includes('hint')){
+      return "The path is not linear, yet each step is destined. Listen closely to silence between purchases.";
+    }
+    if(input.includes('key')){
+      return "A key rusted with time. It whispers of locked doors that should not open yet.";
+    }
+    if(input.includes('lighthouse')){
+      return "A beacon obscured by fog. It flickers only for those who watch patiently.";
+    }
+    if(input.includes('storm')){
+      return "Raging waters churn secrets beneath calm surfaces.";
+    }
+    if(input.includes('forest')){
+      return "Among the misted trees, footprints vanish and return elsewhere.";
+    }
+    if(input.includes('decay')){
+      return "Decay conceals, but also reveals — tread with measured steps.";
+    }
+    if(input.includes('order')){
+      return "Order is a fragile illusion. Break it and all resets.";
+    }
+    if(input.includes('money') || input.includes('skull')){
+      return "Skulls are finite. Spend them, but do not squander your essence.";
+    }
+    if(input.includes('cart')){
+      return "Your cart cradles fate — choose what lingers and what fades.";
+    }
+
+    const responses = [
+      "…Listen. The void murmurs your missteps.",
+      "The wrong choice casts a long shadow.",
+      "Trust in the unseen pattern, for sight betrays.",
+      "A single misstep fractures the sequence.",
+      "Not all items are meant to be bought first."
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  function userSendMessage(){
+    const text = chatbotInput.value.trim();
+    if(!text) return;
+    appendMessage(text, 'user');
+    chatbotInput.value = '';
+
+    setTimeout(() => {
+      const reply = getBotReply(text);
+      appendMessage(reply, 'bot');
+    }, 800);
+  }
+
+  chatbotSendBtn.addEventListener('click', userSendMessage);
+  chatbotInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') {
+      userSendMessage();
+    }
+  });
+
+  appendMessage("VOID-11 HARPER online. Need a hint? Speak softly...", 'bot');
+
+  /* ------------- Floating chatbot movement ------------- */
+
+  // Starting position near bottom-right
+  let posX = window.innerWidth - 320;
+  let posY = window.innerHeight - 200;
+  let speedX = 1.5 + Math.random() * 1;
+  let speedY = 1 + Math.random() * 1;
+
+  function moveChatbot(){
+    const w = chatbot.offsetWidth;
+    const h = chatbot.offsetHeight;
+
+    posX += speedX;
+    posY += speedY;
+
+    if(posX + w > window.innerWidth){
+      posX = window.innerWidth - w;
+      speedX *= -1;
+    } else if(posX < 0){
+      posX = 0;
+      speedX *= -1;
+    }
+
+    if(posY + h > window.innerHeight){
+      posY = window.innerHeight - h;
+      speedY *= -1;
+    } else if(posY < 0){
+      posY = 0;
+      speedY *= -1;
+    }
+
+    chatbot.style.left = posX + 'px';
+    chatbot.style.top = posY + 'px';
+
+    requestAnimationFrame(moveChatbot);
+  }
+  moveChatbot();
+
+  /* -------- Make chatbot draggable -------- */
+  let isDragging = false;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+
+  chatbotHeader.style.cursor = 'grab';
+
+  chatbotHeader.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    dragOffsetX = e.clientX - chatbot.offsetLeft;
+    dragOffsetY = e.clientY - chatbot.offsetTop;
+    chatbotHeader.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    chatbotHeader.style.cursor = 'grab';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if(isDragging){
+      posX = e.clientX - dragOffsetX;
+      posY = e.clientY - dragOffsetY;
+
+      // Keep within viewport bounds
+      posX = Math.min(Math.max(0, posX), window.innerWidth - chatbot.offsetWidth);
+      posY = Math.min(Math.max(0, posY), window.innerHeight - chatbot.offsetHeight);
+
+      chatbot.style.left = posX + 'px';
+      chatbot.style.top = posY + 'px';
+    }
+  });
+
+})();
+</script>
+
 </body>
 </html>
