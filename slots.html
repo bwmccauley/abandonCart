@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VOID-11 HARPER Slot Machine</title>
+<style>
+  /* Background & fonts */
+  body {
+    margin: 0;
+    background: radial-gradient(circle at center, #0a0a0a, #000000 80%);
+    color: #0ff; /* cyan neon */
+    font-family: 'Press Start 2P', cursive, monospace;
+    text-align: center;
+    user-select: none;
+    overflow: hidden;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  h1 {
+    margin-top: 1rem;
+    color: #ff3cff;
+    text-shadow:
+      0 0 5px #ff3cff,
+      0 0 10px #ff3cff,
+      0 0 20px #ff3cff,
+      0 0 40px #ff3cff;
+  }
+
+  #slot-machine {
+    margin: 2rem auto;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    max-width: 400px;
+  }
+
+  .reel {
+    width: 120px;
+    height: 120px;
+    border: 4px solid #0ff;
+    border-radius: 8px;
+    background: linear-gradient(145deg, #001f1f, #004646);
+    box-shadow:
+      0 0 15px #0ff inset,
+      0 0 20px #0ff;
+    font-size: 5rem;
+    line-height: 120px;
+    font-weight: 900;
+    color: #0ff;
+    text-shadow:
+      0 0 5px #0ff,
+      0 0 15px #0ff;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Press Start 2P', monospace;
+  }
+
+  #spin-btn {
+    margin-top: 2rem;
+    background: #0ff;
+    color: black;
+    font-family: 'Press Start 2P', monospace;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 0.8rem 2rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow:
+      0 0 10px #0ff,
+      0 0 20px #0ff;
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+  #spin-btn:hover:enabled {
+    background: #00ffff;
+  }
+  #spin-btn:disabled {
+    background: #004040;
+    cursor: not-allowed;
+    box-shadow: none;
+    color: #003030;
+  }
+
+  #result-message {
+    margin-top: 1.5rem;
+    font-size: 1rem;
+    color: #ff3cff;
+    text-shadow:
+      0 0 5px #ff3cff,
+      0 0 15px #ff3cff;
+    height: 2rem;
+    user-select: none;
+    min-height: 2rem;
+  }
+
+  /* Corrupted VOID-11 HARPER Chatbot */
+  #chatbot {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 220px;
+    background: #0f0f0f;
+    border: 3px solid #ff3cff;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow:
+      0 0 15px #ff3cff,
+      0 0 40px #ff3cff inset;
+    font-family: 'Press Start 2P', monospace;
+    color: #ff3cff;
+    cursor: grab;
+    user-select: none;
+    overflow: hidden;
+  }
+
+  #chatbot img {
+    width: 100%;
+    filter:
+      drop-shadow(0 0 6px #ff3cff)
+      drop-shadow(0 0 10px #ff3cff);
+    image-rendering: pixelated;
+    animation: glitch-flicker 3s infinite;
+    border-radius: 8px;
+  }
+
+  @keyframes glitch-flicker {
+    0%, 20%, 40%, 60%, 80%, 100% {
+      opacity: 1;
+      filter: drop-shadow(0 0 10px #ff3cff);
+    }
+    10%, 30%, 50%, 70%, 90% {
+      opacity: 0.6;
+      filter: drop-shadow(0 0 20px #ff3cff);
+      transform: translateX(2px);
+    }
+  }
+
+  #chatbot-text {
+    margin-top: 8px;
+    font-size: 10px;
+    line-height: 1.3;
+    text-shadow:
+      0 0 5px #ff3cff,
+      0 0 10px #ff3cff;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    animation: text-flicker 4s infinite;
+  }
+
+  @keyframes text-flicker {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0.5; }
+  }
+
+  /* Scanline overlay */
+  #chatbot::before {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        rgba(255,255,255,0.05),
+        rgba(255,255,255,0.05) 1px,
+        transparent 2px,
+        transparent 3px
+      );
+    z-index: 1;
+  }
+
+</style>
+</head>
+<body>
+
+<h1>VOID-11 HARPER Slot Machine</h1>
+
+<div id="slot-machine">
+  <div class="reel" id="reel1">❔</div>
+  <div class="reel" id="reel2">❔</div>
+  <div class="reel" id="reel3">❔</div>
+</div>
+
+<button id="spin-btn">SPIN</button>
+<div id="result-message"></div>
+
+<!-- Corrupted VOID-11 HARPER Chatbot -->
+<div id="chatbot" style="left: auto; top: auto;">
+  <img id="chatbot-face" src="corrupted-lizard.png" alt="VOID-11 Harper Corrupted Face" />
+  <div id="chatbot-text">SYSTEM ERROR... READY TO PLAY?</div>
+</div>
+
+<script src="slots.js"></script>
+
+</body>
+</html>
